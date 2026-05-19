@@ -73,7 +73,8 @@ let print_header machine =
   let left_pad = (78 - String.length machine.name) / 2 in
   let right_pad = 78 - String.length machine.name - left_pad in
   print_endline ("*" ^ String.make left_pad ' ' ^ machine.name ^ String.make right_pad ' ' ^ "*");
-  print_endline (String.make 80 '*');
+  print_endline ("*" ^ String.make 78 ' ' ^ "*");
+  print_endline (String.make 80 '*')
 
 let () =
   if Array.length Sys.argv < 3 then (
