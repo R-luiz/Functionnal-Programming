@@ -20,7 +20,8 @@ deps:
 
 build:
 	@opam exec -- dune build ./src/main.exe
-	@cp -f $(BUILD) ./$(NAME)
+	@rm -f ./$(NAME)
+	@cp $(BUILD) ./$(NAME)
 	@chmod +x ./$(NAME)
 
 run: all
