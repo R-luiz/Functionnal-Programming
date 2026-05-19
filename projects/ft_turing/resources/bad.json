@@ -1,0 +1,9 @@
+{
+  "name": "bad",
+  "alphabet": ["1", "."],
+  "blank": ".",
+  "states": ["HALT"],
+  "initial": "nonexistent",
+  "finals": ["HALT"],
+  "transitions": {}
+}

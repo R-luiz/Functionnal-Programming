@@ -55,8 +55,18 @@ let rec simulate machine gauche droite state =
   else
     let droite = if droite = [] then [machine.blank] else droite in
     let read_value = List.hd droite in
-    let (_,transitions) = List.find (fun (s,_) -> s = state) machine.transitions in
-    let transition = List.find (fun t -> t.read = read_value) transitions in
+    let (_, transitions) =
+      try List.find (fun (s, _) -> s = state) machine.transitions
+      with Not_found ->
+        Printf.printf "Error: no transitions defined for state '%s'\n" state;
+        exit 1 
+    in
+    let transition = 
+      try List.find (fun t -> t.read = read_value) transitions
+      with Not_found ->
+        Printf.printf "Error: machine is blocked in state '%s' reading '%s'\n" state read_value;
+        exit 1
+    in
     let new_droite = transition.write :: List.tl droite in
     print_step gauche droite state transition machine;
     if transition.action = "RIGHT" then
@@ -74,7 +84,56 @@ let print_header machine =
   let right_pad = 78 - String.length machine.name - left_pad in
   print_endline ("*" ^ String.make left_pad ' ' ^ machine.name ^ String.make right_pad ' ' ^ "*");
   print_endline ("*" ^ String.make 78 ' ' ^ "*");
+  print_endline (String.make 80 '*');
+  print_endline ("Alphabet: [ " ^ String.concat ", " machine.alphabet ^ " ]");
+  print_endline ("States : [ " ^ String.concat ", " machine.states ^ " ]");
+  print_endline ("Initial State: " ^ machine.initial);
+  print_endline ("Finals : [ " ^ String.concat ", " machine.finals ^ " ]");
+  let transition_strings = 
+    List.concat_map (fun (state, trans) -> List.map (fun t -> "(" ^ state ^ ", " ^ t.read ^ ") -> (" ^ t.to_state ^ ", " ^ t.write ^ ", " ^ t.action ^ ")") trans) machine.transitions in
+  List.iter print_endline transition_strings;
   print_endline (String.make 80 '*')
+
+let validate_machine machine =
+  let all_states = machine.states in
+  let all_symbols = machine.alphabet in
+  let validate_transition (state, transitions) =
+    if not (List.mem state all_states) then (
+      Printf.printf "Error: state '%s' in transitions is not defined in states\n" state;
+      exit 1
+    );
+    List.iter (fun t ->
+      if not (List.mem t.to_state all_states) then (
+        Printf.printf "Error: to_state '%s' in transition from state '%s' is not defined in states\n" t.to_state state;
+        exit 1
+      );
+      if not (List.mem t.read all_symbols) then (
+        Printf.printf "Error: read symbol '%s' in transition from state '%s' is not defined in alphabet\n" t.read state;
+        exit 1
+      );
+      if not (List.mem t.write all_symbols) then (
+        Printf.printf "Error: write symbol '%s' in transition from state '%s' is not defined in alphabet\n" t.write state;
+        exit 1
+      );
+      if t.action <> "RIGHT" && t.action <> "LEFT" then (
+        Printf.printf "Error: action '%s' in transition from state '%s' is invalid (must be 'RIGHT' or 'LEFT')\n" t.action state;
+        exit 1
+      )
+    ) transitions
+  in
+  if not (List.mem machine.blank machine.alphabet) then (
+    Printf.printf "Error: blank '%s' is not in alphabet\n" machine.blank;
+    exit 1
+  );
+  if not (List.mem machine.initial machine.states) then (
+    Printf.printf "Error: initial state '%s' is not in states\n" machine.initial;
+    exit 1
+  );
+  if not (List.for_all (fun s -> List.mem s machine.states) machine.finals) then (
+    Printf.printf "Error: some final states are not in states\n";
+    exit 1
+  );
+  List.iter validate_transition machine.transitions
 
 let () =
   if Array.length Sys.argv < 3 then (
@@ -84,5 +143,6 @@ let () =
   let m = parse_json Sys.argv.(1) in
   let tape = convert_input Sys.argv.(2) in
   print_header m;
+  validate_machine m;
   simulate m [] tape m.initial
 
