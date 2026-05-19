@@ -37,6 +37,18 @@ let parse_json filename =
     transitions = json |> member "transitions" |> to_assoc |> List.map (fun (state,trans) -> (state, trans |> to_list |> List.map parse_transition));
   }
 
+let print_step gauche droite state transition machine =
+  print_string "[";
+  List.iter print_string (List.rev gauche);
+  print_string ("<" ^ List.hd droite ^ ">");
+  List.iter print_string (List.tl droite);
+  let tape_length = List.length gauche + List.length droite in
+  let padding = if tape_length < 30 then 30 - tape_length else 0 in
+  String.make padding (String.get machine.blank 0) |> print_string;
+  print_string "] ";
+  print_string ("(" ^ state ^ ", " ^ transition.read ^ ") -> (" ^ transition.to_state ^ ", " ^ transition.write ^ ", " ^ transition.action ^ ")");
+  print_newline ()
+
 let rec simulate machine gauche droite state =
   if List.mem state machine.finals then
     ()
@@ -46,6 +58,7 @@ let rec simulate machine gauche droite state =
     let (_,transitions) = List.find (fun (s,_) -> s = state) machine.transitions in
     let transition = List.find (fun t -> t.read = read_value) transitions in
     let new_droite = transition.write :: List.tl droite in
+    print_step gauche droite state transition machine;
     if transition.action = "RIGHT" then
       simulate machine (List.hd new_droite :: gauche) (List.tl new_droite) transition.to_state
     else

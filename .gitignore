@@ -1,0 +1,19 @@
+# OCaml build artifacts
+_build/
+*.cmi
+*.cmo
+*.cmx
+*.o
+*.cma
+*.cmxa
+*.annot
+*.install
+.merlin
+
+# Project binaries
+projects/ft_turing/ft_turing
+projects/h42n42/h42n42
+
+# Logs / misc
+*.log
+.DS_Store
