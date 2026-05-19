@@ -67,6 +67,14 @@ let rec simulate machine gauche droite state =
 let convert_input input =
   List.init (String.length input) (fun i -> String.make 1 input.[i])
 
+let print_header machine = 
+  print_endline (String.make 80 '*');
+  print_endline ("*" ^ String.make 78 ' ' ^ "*");
+  let left_pad = (78 - String.length machine.name) / 2 in
+  let right_pad = 78 - String.length machine.name - left_pad in
+  print_endline ("*" ^ String.make left_pad ' ' ^ machine.name ^ String.make right_pad ' ' ^ "*");
+  print_endline (String.make 80 '*');
+
 let () =
   if Array.length Sys.argv < 3 then (
       print_endline "usage: ft_turing jsonfile input";
@@ -74,5 +82,6 @@ let () =
     );
   let m = parse_json Sys.argv.(1) in
   let tape = convert_input Sys.argv.(2) in
+  print_header m;
   simulate m [] tape m.initial
 
