@@ -72,6 +72,7 @@ let rec simulate machine gauche droite state =
     if transition.action = "RIGHT" then
       simulate machine (List.hd new_droite :: gauche) (List.tl new_droite) transition.to_state
     else
+      let gauche = if gauche = [] then [machine.blank] else gauche in
       simulate machine (List.tl gauche) (List.hd gauche :: new_droite) transition.to_state
 
 let convert_input input =
